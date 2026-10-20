@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import math
 from graphics import *
+import time
 
 
 
@@ -159,8 +160,8 @@ def visualize_path(patterns, maxdim):
             line.setOutline("blue")
             line.setWidth(10)
             
-
         line.draw(win)
+        time.sleep(0.4)
 
     win.getMouse()
     win.close()
@@ -264,7 +265,7 @@ def contiguous_region_path(pattern, current_cross, current_vertex, came_from, st
 
 
 def main():
-    tree = ET.parse(r"square.oxs")
+    tree = ET.parse(r"line.oxs")
     
     stitches, crosses, colors, maxdim = parse_oxs_xml(tree)
     visualize(stitches, colors, maxdim+1)
