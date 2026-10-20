@@ -1,0 +1,6 @@
+name: cross-stitch-graph-theory
+channels:
+  - defaults
+dependencies:
+  - python
+  - graphics
