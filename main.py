@@ -1,26 +1,8 @@
 import xml.etree.ElementTree as ET
 import math
-from graphics import *
-import time
 
-
-
-class Cross:
-    def __init__(self, xy):
-        self.x = xy[0]
-        self.y = xy[1]
-    
-        self.N = (self.x, self.y - 1)
-        self.E = (self.x + 1, self.y)
-        self.S = (self.x, self.y + 1)
-        self.W = (self.x - 1, self.y)
-
-        self.NE = (self.x + 1, self.y)
-        self.NW = (self.x, self.y)
-        self.SW = (self.x, self.y + 1)
-        self.SE = (self.x + 1, self.y + 1)
-
-        self.xy = (self.x, self.y)
+from cross import *
+from visualizing import *
 
 
 # From EmbroideryProblem repo
@@ -116,56 +98,6 @@ def parse_oxs_xml(tree):
     return stitch_patterns, cross_patterns, colors, maxdim
 
 
-def visualize(patterns, colors, maxdim):
-    win = GraphWin(width = 800, height = 800)
-
-    win.setCoords(0, maxdim, maxdim, 0)
-
-    for graph in patterns:
-        color = colors[graph]
-        for vertex in patterns[graph]:
-            pt1 = Point(vertex[0], vertex[1])
-            pt1.setWidth
-            #pt1.draw(win)
-            for edge in patterns[graph][vertex]:
-                pt2 = Point(edge[0], edge[1])
-                #pt2.draw(win)
-                line = Line(pt1, pt2)
-
-                line.setOutline(color)
-                line.setWidth(10)
-                line.draw(win)
-
-    win.getMouse()
-    win.close()
-
-
-def visualize_path(patterns, maxdim):
-    win = GraphWin(width = 800, height = 800)
-
-    win.setCoords(0, maxdim, maxdim, 0)
-
-    for edge in patterns:
-        v1 = edge[0]
-        v2 = edge[1]
-        pt1 = Point(v1[0], v1[1])
-        pt1.setWidth
-        pt2 = Point(v2[0], v2[1])
-        line = Line(pt1, pt2)
-
-        if v1[0] == v2[0] or v1[1] == v2[1]:
-            line.setOutline("red")
-            line.setWidth(5)
-        else:
-            line.setOutline("blue")
-            line.setWidth(10)
-            
-        line.draw(win)
-        time.sleep(0.4)
-
-    win.getMouse()
-    win.close()
-
 
 def complete_graph(pattern):
     front_edges = {}
@@ -190,7 +122,7 @@ def complete_graph(pattern):
     return front_edges, back_edges
 
 
-
+# Find stitching route for a contiguous region, starting and ending at the same point via a depth-first traversal
 def contiguous_region_path(pattern, current_cross, current_vertex, came_from, stitch_route):
     # Start with under-diagonal stitch
     # current_vertex should be SW or NE corner
@@ -264,14 +196,21 @@ def contiguous_region_path(pattern, current_cross, current_vertex, came_from, st
     return pattern, stitch_route, current_vertex
 
 
+# 
+def contiguous_region_path_with_start_and_end():
+    print()
+
+
 def main():
-    tree = ET.parse(r"line.oxs")
+    tree = ET.parse(r"oxs_files/paths.oxs")
     
     stitches, crosses, colors, maxdim = parse_oxs_xml(tree)
     visualize(stitches, colors, maxdim+1)
 
     for p in crosses:
         pattern = crosses[p]
+
+        #visualize_from_crosses(pattern, maxdim+1)
 
         # TODO: Actually choose first cross from pattern
         first_cross = Cross((1, 1))
