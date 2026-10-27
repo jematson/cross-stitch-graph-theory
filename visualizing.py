@@ -40,7 +40,7 @@ def visualize_from_crosses(pattern, maxdim):
         ne = Point(cross[0] + 1, cross[1])
         se = Point(cross[0] + 1, cross[1] + 1)
 
-        color = "blue" if cross_parity(cross) else "green"
+        color = "blue"# if cross_parity(cross) else "green"
 
         under = Line(sw, ne)
         under.setOutline(color)
