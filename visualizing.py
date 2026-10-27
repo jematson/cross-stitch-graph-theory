@@ -35,7 +35,6 @@ def visualize_from_crosses(pattern, maxdim):
     win.setCoords(0, maxdim, maxdim, 0)
 
     for cross in pattern:
-        print(cross, type(cross))
         nw = Point(cross[0], cross[1])
         sw = Point(cross[0], cross[1] + 1)
         ne = Point(cross[0] + 1, cross[1])
@@ -58,7 +57,7 @@ def visualize_from_crosses(pattern, maxdim):
 
 
 
-def visualize_path(patterns, maxdim):
+def visualize_path(patterns, maxdim, sleeptime, linewidth):
     win = GraphWin(width = 800, height = 800)
 
     win.setCoords(0, maxdim, maxdim, 0)
@@ -73,13 +72,13 @@ def visualize_path(patterns, maxdim):
 
         if v1[0] == v2[0] or v1[1] == v2[1]:
             line.setOutline("red")
-            line.setWidth(5)
+            line.setWidth(linewidth)
         else:
             line.setOutline("blue")
-            line.setWidth(10)
+            line.setWidth(linewidth)
             
         line.draw(win)
-        time.sleep(0.1)
+        time.sleep(sleeptime)
 
     win.getMouse()
     win.close()

@@ -99,6 +99,45 @@ def parse_oxs_xml(tree):
 
 
 
+def find_contiguous_regions(crosses):
+    regions = []
+
+    def dfs_connect(cross, region_so_far):
+        s = (cross[0] + 1, cross[1])
+        n = (cross[0] - 1, cross[1])
+        w = (cross[0], cross[1] - 1)
+        e = (cross[0], cross[1] + 1)
+
+        if s in crosses and s not in region_so_far:
+            region_so_far.add(s)
+            crosses.remove(s)
+            region_so_far = dfs_connect(s, region_so_far)
+        if n in crosses and n not in region_so_far:
+            region_so_far.add(n)
+            crosses.remove(n)
+            region_so_far = dfs_connect(n, region_so_far)
+        if w in crosses and w not in region_so_far:
+            region_so_far.add(w)
+            crosses.remove(w)
+            region_so_far = dfs_connect(w, region_so_far)
+        if e in crosses and e not in region_so_far:
+            region_so_far.add(e)
+            crosses.remove(e)
+            region_so_far = dfs_connect(e, region_so_far)
+        if cross in crosses:
+            crosses.remove(cross)
+        return region_so_far
+
+    while crosses:
+        cross = crosses[0]
+        region = dfs_connect(cross, {cross})
+        regions.append(region)
+        print(region)
+
+    return regions
+
+    
+
 def complete_graph(pattern):
     front_edges = {}
     back_edges = {}
@@ -202,21 +241,23 @@ def contiguous_region_path_with_start_and_end():
 
 
 def main():
-    tree = ET.parse(r"oxs_files/paths.oxs")
+    tree = ET.parse(r"oxs_files/disconboxes.oxs")
     
     stitches, crosses, colors, maxdim = parse_oxs_xml(tree)
-    visualize(stitches, colors, maxdim+1)
+    #visualize(stitches, colors, maxdim+1)
+
 
     for p in crosses:
         pattern = crosses[p]
 
-        #visualize_from_crosses(pattern, maxdim+1)
+        find_contiguous_regions(list(pattern.keys()))
+
+        visualize_from_crosses(pattern, maxdim+1)
 
         # TODO: Actually choose first cross from pattern
         first_cross = Cross((1, 1))
         pattern, stitch_route, cv = contiguous_region_path(pattern, first_cross, first_cross.SW, "", [])
-        print(stitch_route)
-        visualize_path(stitch_route, maxdim+1)
+        visualize_path(stitch_route, maxdim+1, 0, 1)
     
     
 
