@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import math
+import sys
 
 from cross import *
 from visualizing import *
@@ -31,11 +32,35 @@ def edge_length(edge):
     return math.sqrt(x_diff**2 + y_diff**2)
 
 
+def complete_graph(pattern):
+    front_edges = {}
+    back_edges = {}
+
+    for v1 in pattern.keys():
+
+        # Get front edges
+        adj_list = pattern[v1]
+        for adj in adj_list:
+            edge = standard_edge(v1, adj)
+            if edge not in front_edges:
+                front_edges[edge] = edge_length(edge)
+
+        # Fill in all possible back edges
+        for v2 in pattern:
+            if v1 != v2:
+                edge = standard_edge(v1, v2)
+                if edge not in back_edges:
+                    back_edges[edge] = edge_length(edge)
+
+    return front_edges, back_edges
+
+
+
+
 def parse_oxs_xml(tree):
     root = tree.getroot()
 
     # Return a dictionary of adjacency lists, one for each palette color
-    stitch_patterns = {}
     cross_patterns = {}
     colors = {}
     maxdim = 0
@@ -47,55 +72,22 @@ def parse_oxs_xml(tree):
 
     for stitch in root.find("fullstitches"):
         i = stitch.get("palindex")
-        x1 = int(stitch.get("x"))
-        y1 = int(stitch.get("y"))
-        x2 = x1 + 1
-        y2 = y1 + 1
+        x = int(stitch.get("x"))
+        y = int(stitch.get("y"))
 
-        if x2 > maxdim:
-            maxdim = x2
-        if y2 > maxdim:
-            maxdim = y2
-            
+        if x > maxdim:
+            maxdim = x + 2
+        if y > maxdim:
+            maxdim = y + 2
 
-        nw = (x1, y1)
-        ne = (x2, y1)
-        sw = (x1, y2)
-        se = (x2, y2)
-
-        if i not in stitch_patterns:
-            stitch_patterns[i] = {} 
         if i not in cross_patterns:
             cross_patterns[i] = {}
         
-        pattern = stitch_patterns[i]
         crosses = cross_patterns[i]
 
-        crosses[(x1, y1)] = 0
+        crosses[(x, y)] = 0
 
-        # add stitches nw to se and sw to ne
-
-        if nw not in pattern:
-            pattern[nw] = []
-        if se not in pattern[nw]:
-            pattern[nw].append(se)
-
-        if ne not in pattern: 
-            pattern[ne] = []
-        if sw not in pattern[ne]:
-            pattern[ne].append(sw)
-
-        if sw not in pattern:
-            pattern[sw] = []
-        if ne not in pattern[sw]:
-            pattern[sw].append(ne)
-
-        if se not in pattern:
-            pattern [se] = []
-        if nw not in pattern[se]:
-            pattern[se].append(nw)
-    
-    return stitch_patterns, cross_patterns, colors, maxdim
+    return cross_patterns, colors, maxdim
 
 
 
@@ -132,33 +124,9 @@ def find_contiguous_regions(crosses):
         cross = crosses[0]
         region = dfs_connect(cross, [cross])
         regions.append(region)
-        print(region)
 
     return regions
 
-    
-
-def complete_graph(pattern):
-    front_edges = {}
-    back_edges = {}
-
-    for v1 in pattern.keys():
-
-        # Get front edges
-        adj_list = pattern[v1]
-        for adj in adj_list:
-            edge = standard_edge(v1, adj)
-            if edge not in front_edges:
-                front_edges[edge] = edge_length(edge)
-
-        # Fill in all possible back edges
-        for v2 in pattern:
-            if v1 != v2:
-                edge = standard_edge(v1, v2)
-                if edge not in back_edges:
-                    back_edges[edge] = edge_length(edge)
-
-    return front_edges, back_edges
 
 
 # Find stitching route for a contiguous region, starting and ending at the same point via a depth-first traversal
@@ -236,28 +204,41 @@ def contiguous_region_path(pattern, current_cross, current_vertex, came_from, st
 
 
 # 
-def contiguous_region_path_with_start_and_end():
-    print()
+def contiguous_region_path_with_start_and_end(start_cross, end_cross):
+    if cross_parity(start_cross) != cross_parity(end_cross):
+        print("START AND END MUST BE SAME PARITY")
+        return
+    
+    # Find single-pass line from start to end
+    final_line = []
+
+    
+
+
+    # DFS filling in from that line
 
 
 def main():
-    tree = ET.parse(r"oxs_files/disconnected.oxs")
+    sys.setrecursionlimit(10**6)
+
+    tree = ET.parse(r"oxs_files/multibox.oxs")
     
-    stitches, crosses, colors, maxdim = parse_oxs_xml(tree)
-    #visualize(stitches, colors, maxdim+1)
+    crosses, colors, maxdim = parse_oxs_xml(tree)
 
 
     for p in crosses:
         pattern = crosses[p]
+        color = colors[p]
 
         regions = find_contiguous_regions(list(pattern.keys()))
 
-        visualize_from_crosses(pattern, maxdim+1)
+        #visualize_from_crosses(pattern, color, maxdim+1)
 
         for region in regions:
+            print(len(region))
             first_cross = Cross(region[0])
             pattern, stitch_route, cv = contiguous_region_path(pattern, first_cross, first_cross.SW, "", [])
-            visualize_path(stitch_route, maxdim+1, 0.2, 4)
+            visualize_path(stitch_route, maxdim=maxdim+1, sleeptime=0, linewidth=1)
     
     
 

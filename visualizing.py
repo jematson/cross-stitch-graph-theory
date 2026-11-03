@@ -30,7 +30,7 @@ def cross_parity(cross):
     return ( (cross[0] + cross[1]) % 2 ) == 0
 
 
-def visualize_from_crosses(pattern, maxdim):
+def visualize_from_crosses(pattern, color, maxdim, linewidth=5, show_parity=False):
     win = GraphWin(width = 800, height = 800)
     win.setCoords(0, maxdim, maxdim, 0)
 
@@ -40,16 +40,17 @@ def visualize_from_crosses(pattern, maxdim):
         ne = Point(cross[0] + 1, cross[1])
         se = Point(cross[0] + 1, cross[1] + 1)
 
-        color = "blue"# if cross_parity(cross) else "green"
+        if show_parity:
+            color = "blue" if cross_parity(cross) else "green"
 
         under = Line(sw, ne)
         under.setOutline(color)
-        under.setWidth(10)
+        under.setWidth(linewidth)
         under.draw(win)
 
         over = Line(nw, se)
         over.setOutline(color)
-        over.setWidth(10)
+        over.setWidth(linewidth)
         over.draw(win)
 
     win.getMouse()
