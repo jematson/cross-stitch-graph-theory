@@ -204,15 +204,108 @@ def contiguous_region_path(pattern, current_cross, current_vertex, came_from, st
 
 
 # 
-def contiguous_region_path_with_start_and_end(start_cross, end_cross):
+def contiguous_region_path_with_start_and_end(start_cross, end_cross, region):
     if cross_parity(start_cross) != cross_parity(end_cross):
         print("START AND END MUST BE SAME PARITY")
         return
     
     # Find single-pass line from start to end
-    final_line = []
+    final_path = [start_cross]
 
-    
+    def final_path_recurse(curr_cross, current_path):
+        # Base case: reached end cross
+        if curr_cross == end_cross:
+            return current_path, True
+
+        # 
+
+        # N
+        N = (curr_cross[0], curr_cross[1] - 2)
+        if N in region and N not in current_path:
+            current_path.append(N)
+            current_path, done = final_path_recurse(N, current_path)
+            if done:
+                return current_path, True
+            else:
+                current_path.remove(curr_cross)
+
+        # NE
+        NE = (curr_cross[0] + 1, curr_cross[0] - 1)
+        if NE in region and NE not in current_path:
+            current_path.append(NE)
+            current_path, done = final_path_recurse(NE, current_path)
+            if done:
+                return current_path, True
+            else:
+                current_path.remove(curr_cross)
+
+        # E
+        E = (curr_cross[0] + 2, curr_cross[1])
+        if E in region and E not in current_path:
+            current_path.append(E)
+            current_path, done = final_path_recurse(E, current_path)
+            if done:
+                return current_path, True
+            else:
+                current_path.remove(curr_cross)
+
+        # SE
+        SE = (curr_cross[0] + 1, curr_cross[1] + 1)
+        if SE in region and SE not in current_path:
+            current_path.append(SE)
+            current_path, done = final_path_recurse(SE, current_path)
+            if done:
+                return current_path, True
+            else:
+                current_path.remove(curr_cross)
+
+        # S
+        S = (curr_cross[0], curr_cross[1] + 2)
+        if S in region and S not in current_path:
+            current_path.append(S)
+            current_path, done = final_path_recurse(S, current_path)
+            if done:
+                return current_path, True
+            else:
+                current_path.remove(curr_cross)
+
+        # SW
+        SW = (curr_cross[0] - 1, curr_cross[1] + 1)
+        if SW in region and SW not in current_path:
+            current_path.append(SW)
+            current_path, done = final_path_recurse(SW, current_path)
+            if done:
+                return current_path, True
+            else:
+                current_path.remove(curr_cross)
+        # W
+        W = (curr_cross[0] - 2, curr_cross[1])
+        if W in region and W not in current_path:
+            current_path.append(W)
+            current_path, done = final_path_recurse(W, current_path)
+            if done:
+                return current_path, True
+            else:
+                current_path.remove(curr_cross)
+
+        # NW
+        NW = (curr_cross[0] - 1, curr_cross[1] - 1)
+        if NW in region and NW not in current_path:
+            current_path.append(NW)
+            current_path, done = final_path_recurse(NW, current_path)
+            if done:
+                return current_path, True
+            else:
+                current_path.remove(curr_cross)
+        
+        return current_path, False
+
+    final_path = final_path_recurse(start_cross, final_path)
+
+    return final_path
+
+    # From a cross, the next possible ones are the diagonals or one away
+
 
 
     # DFS filling in from that line
@@ -221,7 +314,7 @@ def contiguous_region_path_with_start_and_end(start_cross, end_cross):
 def main():
     sys.setrecursionlimit(10**6)
 
-    tree = ET.parse(r"oxs_files/multibox.oxs")
+    tree = ET.parse(r"oxs_files/square.oxs")
     
     crosses, colors, maxdim = parse_oxs_xml(tree)
 
@@ -233,12 +326,15 @@ def main():
         regions = find_contiguous_regions(list(pattern.keys()))
 
         #visualize_from_crosses(pattern, color, maxdim+1)
+        l, done = contiguous_region_path_with_start_and_end((1, 1), (3, 3), regions[0])
+        print(l)
+        visualize_from_crosses(l, color, maxdim+1)
 
-        for region in regions:
-            print(len(region))
-            first_cross = Cross(region[0])
-            pattern, stitch_route, cv = contiguous_region_path(pattern, first_cross, first_cross.SW, "", [])
-            visualize_path(stitch_route, maxdim=maxdim+1, sleeptime=0, linewidth=1)
+        # for region in regions:
+        #     print(len(region))
+        #     first_cross = Cross(region[0])
+        #     pattern, stitch_route, cv = contiguous_region_path(pattern, first_cross, first_cross.SW, "", [])
+        #     visualize_path(stitch_route, maxdim=maxdim+1, sleeptime=0, linewidth=1)
     
     
 
