@@ -101,19 +101,19 @@ def find_contiguous_regions(crosses):
         e = (cross[0], cross[1] + 1)
 
         if s in crosses and s not in region_so_far:
-            region_so_far.append(s)
+            region_so_far.add(s)
             crosses.remove(s)
             region_so_far = dfs_connect(s, region_so_far)
         if n in crosses and n not in region_so_far:
-            region_so_far.append(n)
+            region_so_far.add(n)
             crosses.remove(n)
             region_so_far = dfs_connect(n, region_so_far)
         if w in crosses and w not in region_so_far:
-            region_so_far.append(w)
+            region_so_far.add(w)
             crosses.remove(w)
             region_so_far = dfs_connect(w, region_so_far)
         if e in crosses and e not in region_so_far:
-            region_so_far.append(e)
+            region_so_far.add(e)
             crosses.remove(e)
             region_so_far = dfs_connect(e, region_so_far)
         if cross in crosses:
@@ -122,7 +122,7 @@ def find_contiguous_regions(crosses):
 
     while crosses:
         cross = crosses[0]
-        region = dfs_connect(cross, [cross])
+        region = dfs_connect(cross, {cross})
         regions.append(region)
 
     return regions
@@ -217,90 +217,31 @@ def contiguous_region_path_with_start_and_end(start_cross, end_cross, region):
         if curr_cross == end_cross:
             return current_path, True
 
-        # 
-
-        # N
+        # Possible crosses to follow
         N = (curr_cross[0], curr_cross[1] - 2)
-        if N in region and N not in current_path:
-            current_path.append(N)
-            current_path, done = final_path_recurse(N, current_path)
-            if done:
-                return current_path, True
-            else:
-                current_path.remove(curr_cross)
-
-        # NE
-        NE = (curr_cross[0] + 1, curr_cross[0] - 1)
-        if NE in region and NE not in current_path:
-            current_path.append(NE)
-            current_path, done = final_path_recurse(NE, current_path)
-            if done:
-                return current_path, True
-            else:
-                current_path.remove(curr_cross)
-
-        # E
+        NE = (curr_cross[0] + 1, curr_cross[1] - 1)
         E = (curr_cross[0] + 2, curr_cross[1])
-        if E in region and E not in current_path:
-            current_path.append(E)
-            current_path, done = final_path_recurse(E, current_path)
-            if done:
-                return current_path, True
-            else:
-                current_path.remove(curr_cross)
-
-        # SE
         SE = (curr_cross[0] + 1, curr_cross[1] + 1)
-        if SE in region and SE not in current_path:
-            current_path.append(SE)
-            current_path, done = final_path_recurse(SE, current_path)
-            if done:
-                return current_path, True
-            else:
-                current_path.remove(curr_cross)
-
-        # S
         S = (curr_cross[0], curr_cross[1] + 2)
-        if S in region and S not in current_path:
-            current_path.append(S)
-            current_path, done = final_path_recurse(S, current_path)
-            if done:
-                return current_path, True
-            else:
-                current_path.remove(curr_cross)
-
-        # SW
         SW = (curr_cross[0] - 1, curr_cross[1] + 1)
-        if SW in region and SW not in current_path:
-            current_path.append(SW)
-            current_path, done = final_path_recurse(SW, current_path)
-            if done:
-                return current_path, True
-            else:
-                current_path.remove(curr_cross)
-        # W
         W = (curr_cross[0] - 2, curr_cross[1])
-        if W in region and W not in current_path:
-            current_path.append(W)
-            current_path, done = final_path_recurse(W, current_path)
-            if done:
-                return current_path, True
-            else:
-                current_path.remove(curr_cross)
-
-        # NW
         NW = (curr_cross[0] - 1, curr_cross[1] - 1)
-        if NW in region and NW not in current_path:
-            current_path.append(NW)
-            current_path, done = final_path_recurse(NW, current_path)
-            if done:
-                return current_path, True
-            else:
-                current_path.remove(curr_cross)
-        
+
+        next_crosses = [N, NE, E, SE, S, SW, W, NW]
+        # Sort crosses to try those closer to the end_cross first
+        next_crosses.sort(key=lambda cross: math.dist(cross, end_cross))
+
+        for cross in next_crosses:
+            if cross in region and cross not in current_path:
+                current_path.append(cross)
+                current_path, done = final_path_recurse(cross, current_path)
+                if done:
+                    return current_path, True
+                    
+        current_path.pop()
         return current_path, False
 
-    final_path = final_path_recurse(start_cross, final_path)
+    final_path, true = final_path_recurse(start_cross, final_path)
 
     return final_path
 
@@ -314,7 +255,7 @@ def contiguous_region_path_with_start_and_end(start_cross, end_cross, region):
 def main():
     sys.setrecursionlimit(10**6)
 
-    tree = ET.parse(r"oxs_files/square.oxs")
+    tree = ET.parse(r"oxs_files/weirdpath.oxs")
     
     crosses, colors, maxdim = parse_oxs_xml(tree)
 
@@ -326,7 +267,7 @@ def main():
         regions = find_contiguous_regions(list(pattern.keys()))
 
         #visualize_from_crosses(pattern, color, maxdim+1)
-        l, done = contiguous_region_path_with_start_and_end((1, 1), (3, 3), regions[0])
+        l = contiguous_region_path_with_start_and_end((1, 1), (5, 13), regions[0])
         print(l)
         visualize_from_crosses(l, color, maxdim+1)
 
