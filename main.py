@@ -208,6 +208,12 @@ def contiguous_region_path_with_start_and_end(start_cross, end_cross, region):
     if cross_parity(start_cross) != cross_parity(end_cross):
         print("START AND END MUST BE SAME PARITY")
         return
+    if start_cross not in region:
+        print("START CROSS NOT IN REGION")
+        return
+    if end_cross not in region:
+        print("END CROSS NOT IN REGION")
+        return
     
     # Find single-pass line from start to end
     final_path = [start_cross]
@@ -241,21 +247,50 @@ def contiguous_region_path_with_start_and_end(start_cross, end_cross, region):
         current_path.pop()
         return current_path, False
 
-    final_path, true = final_path_recurse(start_cross, final_path)
+    final_path, _ = final_path_recurse(start_cross, final_path)
 
-    return final_path
-
-    # From a cross, the next possible ones are the diagonals or one away
-
-
+    # Part of pattern to fill with dfs
+    area_to_fill = list(region - set(final_path))
+    pattern = dict(zip(area_to_fill, [0]*len(area_to_fill)))
+    route = []
+    this_cross = Cross(final_path[0])
+    current_vertex = this_cross.SW
 
     # DFS filling in from that line
+    for i in range(len(final_path)):
+        this_cross = Cross(final_path[i])
+
+        next_cross = this_cross if i == len(final_path) - 1 else Cross(final_path[i + 1])
+
+        direction = ""
+        if this_cross.x < next_cross.x:
+            if this_cross.y < next_cross.y:
+                direction = "South"
+            else:
+                direction = "East"
+        else:
+            if this_cross.y < next_cross.y:
+                direction = "North"
+            else:
+                direction = "West"
+
+        pattern, stitch_route, current_vertex = contiguous_region_path(pattern, this_cross, current_vertex, direction, route)
+
+        if i != len(final_path) - 1:
+
+            next_vertex = next_cross.SW if math.dist(current_vertex, next_cross.SW) < math.dist(current_vertex, next_cross.NE) else next_cross.NE
+            
+            stitch_route.append((current_vertex, next_vertex))
+            current_vertex = next_vertex
+
+
+    return route
 
 
 def main():
     sys.setrecursionlimit(10**6)
 
-    tree = ET.parse(r"oxs_files/weirdpath.oxs")
+    tree = ET.parse(r"oxs_files/square.oxs")
     
     crosses, colors, maxdim = parse_oxs_xml(tree)
 
@@ -266,10 +301,11 @@ def main():
 
         regions = find_contiguous_regions(list(pattern.keys()))
 
-        #visualize_from_crosses(pattern, color, maxdim+1)
-        l = contiguous_region_path_with_start_and_end((1, 1), (5, 13), regions[0])
+        visualize_from_crosses(pattern, color, maxdim+1)
+        l = contiguous_region_path_with_start_and_end((4, 4), (1, 1), regions[0])
         print(l)
-        visualize_from_crosses(l, color, maxdim+1)
+        print(type(l))
+        visualize_path(l, maxdim=maxdim+1, sleeptime=0.2, linewidth=1)
 
         # for region in regions:
         #     print(len(region))
